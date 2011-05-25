@@ -28,9 +28,32 @@ class IncidentsHandler(webapp.RequestHandler):
         description = self.request.get('description', '')
         incidentdate = self.request.get('date', '')
         
+        # variables for recaptcha
+        challenge = self.request.get('challenge', '')
+        response = self.request.get('response', '')
+        remoteip = os.environ['REMOTE_ADDR']
+        
         if not (lat and lon and description):
-        	utils.setErrorResponse(self.response, 400, "Missing Required Arguments")
-        	return
+            #utils.setErrorResponse(self.response, 400, "Missing Required Arguments")
+        
+            self.response.headers["Content-Type"] = "text/json"
+            #self.response.set_status(400)
+            self.response.out.write(json.dumps(dict(result="failed", message="Missing Required Arguments. Try again.")))
+        
+            return
+        
+        cResponse = captcha.submit(
+                 challenge,
+                 response,
+                 "6LfKnsQSAAAAABUdzDpWvKmf_2lpRaXmwZPaVzSj",
+                 remoteip)
+                 
+        if not cResponse.is_valid:
+            self.response.headers["Content-Type"] = "text/json"
+            #response.set_status(400)
+            self.response.out.write(json.dumps(dict(result="failed", message="Invalid Captcha. Try again.")))
+            
+            return
         	
         incident = models.KotongIncident(description=description, location=db.GeoPt(float(lat), float(lon)))
         
@@ -39,7 +62,10 @@ class IncidentsHandler(webapp.RequestHandler):
                 dt = datetime.datetime.strptime(incidentdate, "%m/%d/%Y")
                 incident.date = dt.date()
             except ValueError:
-                utils.setErrorResponse(self.response, 400, "Invalid Incident Date Format")
+                #utils.setErrorResponse(self.response, 400, "Invalid Incident Date Format")
+                self.response.headers["Content-Type"] = "text/json"
+                #self.response.set_status(400)
+                self.response.out.write(json.dumps(dict(result="failed", message="Invalid Date Format. Try again.")))
                 return
                 
         incident.put()
@@ -52,18 +78,9 @@ class IncidentsHandler(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'templates/georssfeed.html')
         self.response.out.write(template.render(path, dict(incidents=incidents)))
         
-class CaptchaFieldHandler(webapp.RequestHandler):
-    def get(self):
-        chtml = captcha.displayhtml(
-            public_key = "6LfKnsQSAAAAAC8cVZdszsRFIdfFDA5WDu3b9TYd",
-            use_ssl = False,
-            error = None)
-        self.response.out.write(chtml)
-        
 def main():
     application = webapp.WSGIApplication([('/', MainHandler),
-                                          ('/incidents/', IncidentsHandler),
-                                          ('/recaptcha/', CaptchaFieldHandler)],
+                                          ('/incidents/', IncidentsHandler)],
                                          debug=True)
     util.run_wsgi_app(application)
 

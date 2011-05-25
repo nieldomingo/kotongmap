@@ -49,17 +49,6 @@ KOTONGMAP.infowindowaddhandler = function (event) {
 		$("#addkotongdialog input[name='incidentdate']").val('');
 		Recaptcha.reload();
 		KOTONGMAP.adddialog.dialog('open');
-		//$("#addkotongdialog .captcha").load("/recaptcha/", function () {
-		//	KOTONGMAP.adddialog.dialog('open');
-		//});
-		//$.ajax({
-  		//	url: "/recaptcha/",
-  		//	cache: false,
-  		//	success: function(html){
-    	//		$("#addkotongdialog .captcha").get(0).innerHTML = html;
-    	//		KOTONGMAP.adddialog.dialog('open');
-  		//	}
-		//});
 	});
 };
   
@@ -95,6 +84,15 @@ $(window).load(function() {
 	
 	KOTONGMAP.mode = 'view';
 	
+	KOTONGMAP.messagebox = $("#message").dialog({ autoOpen: false,
+		modal: true,
+		buttons: {
+			'Ok': function () {
+				$(this).dialog("close");
+			}
+		} 
+	});
+	
 	// initialize add dialog box
 	KOTONGMAP.adddialog = $("#addkotongdialog").dialog({ autoOpen: false,
 		modal: true,
@@ -104,29 +102,41 @@ $(window).load(function() {
 				var desc = $("#addkotongdialog textarea[name='descrption']").val();
 				var dt = $("#addkotongdialog input[name='incidentdate']").val();
 				var pos = KOTONGMAP.editmarker.getPosition();
+				var challenge = Recaptcha.get_challenge();
+				var response = Recaptcha.get_response();
+				
+				var that = this;
+				
 				$.post("/incidents/",
-						{'description': desc, 'date': dt, lat: pos.lat(), lon: pos.lng()},
+						{'description': desc, 'date': dt, lat: pos.lat(), lon: pos.lng(), challenge: challenge, response: response},
 						function (data) {
-						}, 'json')
-				$(this).dialog("close");
-				KOTONGMAP.mode = 'view';
-				if (KOTONGMAP.editclicklistener) {
-					google.maps.event.removeListener(KOTONGMAP.editclicklistener);
-					KOTONGMAP.editclicklistener = null;
-					KOTONGMAP.editmarker.setMap(null);
-					KOTONGMAP.editmarker = null;
-				}
-				$("#viewmode").parent().siblings().removeClass('selected');
-				$("#viewmode").parent().addClass('selected');
-				
-				KOTONGMAP.georsslayer = new google.maps.KmlLayer(KOTONGMAP.baseurl + 'incidents/?s=' + KOTONGMAP.generateSeconds(), {preserveViewport: true});
-				KOTONGMAP.georsslayer.setMap(KOTONGMAP.map);
-				
+							if (data['result'] == 'saved') {
+								$(that).dialog("close");
+								KOTONGMAP.mode = 'view';
+								if (KOTONGMAP.editclicklistener) {
+									google.maps.event.removeListener(KOTONGMAP.editclicklistener);
+									KOTONGMAP.editclicklistener = null;
+									KOTONGMAP.editmarker.setMap(null);
+									KOTONGMAP.editmarker = null;
+								}
+								$("#viewmode").parent().siblings().removeClass('selected');
+								$("#viewmode").parent().addClass('selected');
+								
+								KOTONGMAP.georsslayer = new google.maps.KmlLayer(KOTONGMAP.baseurl + 'incidents/?s=' + KOTONGMAP.generateSeconds(), {preserveViewport: true});
+								KOTONGMAP.georsslayer.setMap(KOTONGMAP.map);
+							}
+							else {
+								Recaptcha.reload();
+								$("#messagecontent").html(data['message']);
+								KOTONGMAP.messagebox.dialog("open");
+							}
+						}, 'json');
 			},
 			'Cancel': function () {
 				$(this).dialog("close");
 			}
-		} });
+		}
+	});
 		
 	// initialize datepicker
 	$("input[name='incidentdate']").datepicker();
