@@ -1,0 +1,19 @@
+application: kotongmap
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+
+- url: /home/(index\.html)
+  static_files: static_html/\1
+  upload: static_html/(.*)
+
+- url: /javascripts
+  static_dir: javascripts
+  
+- url: /stylesheets
+  static_dir: stylesheets
+
+- url: .*
+  script: main.py

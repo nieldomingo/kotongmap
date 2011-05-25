@@ -1,0 +1,55 @@
+html { 
+	height: 100%
+}
+
+body {
+	height: 100%;
+	margin: 0px;
+	padding: 0px; 
+	width: 1024px;
+	font-family: arial;
+}
+
+#map_canvas {
+	height: 100% 
+}
+
+#topmenu {
+	height: 50px;
+}
+
+#mapcontainer {
+	height: 600px;
+	width: 800px;
+	float: right;
+	clear: none;
+}
+
+#leftside {
+	width: 224px;
+}
+
+#modeswitcher {
+	float: right;
+	margin-bottom: 0;
+	margin-right: 20px;
+}
+
+#modeswitcher li {
+	display: block;
+	font-size: 12px;
+	float: left;
+}
+
+#modeswitcher li a {
+	text-decoration: none;
+	color: black;
+	display: block;
+	padding: 3px 5px;
+	border: 1px solid black;
+}
+
+#modeswitcher li.selected a {
+	color: white;
+	background-color: darkblue;
+}

@@ -1,0 +1,18 @@
+<feed xmlns="http://www.w3.org/2005/Atom"
+  xmlns:georss="http://www.georss.org/georss">
+  <title>Kotong Incidents</title>
+  <updated>{% now "c" %}</updated>
+  {% for incident in incidents %}
+  <entry>
+      <id>http://geodatastore.appspot.com/geometry/{{incident.key}}</id>
+      <title>Kotong Incident</title>
+      <updated>{{ incident.datetime|date:"c" }}</updated>
+      {% if incident.date %}
+      <content type="html"><![CDATA[({{ incident.date|date }}) {{incident.description}}]]></content>
+      {% else %}
+      <content type="html"><![CDATA[{{incident.description}}]]></content>
+      {% endif %}
+      <georss:point>{{incident.location.lat}} {{incident.location.lon}}</georss:point>
+   </entry>
+   {% endfor %}
+</feed>
