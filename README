@@ -1,0 +1,1 @@
+This is a small project for the purpose of learning google maps API. The basic functionality is any visitor can add a point to the map by switching to "Edit Mode".  To prevent abuse, a captcha is required for each point to be added. You can test the code in this repository [here](http://kotongmap.appspot.com/home/index.html).
